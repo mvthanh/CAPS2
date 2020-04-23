@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
-
 import digit_detector.crop as crop
-import digit_detector.show
 
 
 class Regions:
-    """ Image 에서의 bounding box 를 관리하는 class """
 
     def __init__(self, image, boxes, cropper=crop.CropperWithoutPad()):
         self._image = image
@@ -70,7 +66,7 @@ class MserRegionProposer(_RegionProposer):
         bbs = []
         for i, region in enumerate(regions[0]):
             (x, y, w, h) = cv2.boundingRect(region.reshape(-1, 1, 2))
-            if 15 < w < 55 and h > 20:
+            if 12 < w < 55 and h > 20 and y + h > 40 and w*h > 350:
                 bbs.append((y, y + h, x, x + w))
 
         return np.array(bbs)

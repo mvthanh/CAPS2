@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
+
 import cv2
 import numpy as np
-import keras.models
-
 import digit_detector.show as show
 
 
@@ -34,13 +33,30 @@ class NonMaxSuppressor:
 
         area = (x2 - x1 + 1) * (y2 - y1 + 1)
         idxs = np.argsort(probs)
+
         # keep looping while some indexes still remain in the indexes list
         while len(idxs) > 0:
             # grab the last index in the indexes list and add the index value to the list of
             # picked indexes
+            if len(pick) == 2:
+                s = area[idxs[-1]]
+                if s > area[pick[0]]:
+                    if s > area[pick[1]]:
+                        if area[pick[0]] < area[pick[1]]:
+                            pick[0] = idxs[-1]
+                        else:
+                            pick[1] = idxs[-1]
+                    else:
+                        pick[0] = idxs[-1]
+                else:
+                    if s > area[pick[1]]:
+                        pick[1] = idxs[-1]
+                    else:
+                        continue
             last = len(idxs) - 1
             i = idxs[last]
-            pick.append(i)
+            if len(pick) < 2:
+                pick.append(i)
 
             # find the largest (x, y) coordinates for the start of the bounding box and the
             # smallest (x, y) coordinates for the end of the bounding box
@@ -60,13 +76,16 @@ class NonMaxSuppressor:
             # provided overlap threshold
             idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > overlap_threshold)[0])))
 
+        n_sort = boxes[pick][:, 2].astype("int")
+        n_sort = np.argsort(n_sort)
+        pick = np.array(pick)[n_sort]
+
         # return only the bounding boxes that were picked
         return boxes[pick].astype("int"), patches[pick], probs[pick]
 
 
 class DigitSpotter:
 
-    # Todo classifier, recognizer 정리
     def __init__(self, classifier, recognizer, region_proposer):
         """
         Parameters:
@@ -119,7 +138,7 @@ class DigitSpotter:
 
         if show_result:
             for i, bb in enumerate(bbs):
-                # todo : show module 정리
+
                 image = show.draw_box(image, bb, 2)
 
                 y1, y2, x1, x2 = bb
@@ -142,7 +161,3 @@ class DigitSpotter:
         patches = patches[probs > threshold]
         probs = probs[probs > threshold]
         return bbs, patches, probs
-
-
-if __name__ == "__main__":
-    pass

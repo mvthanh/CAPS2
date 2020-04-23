@@ -27,9 +27,6 @@ class FileSorter:
             return s
 
     def _alphanum_key(self, s):
-        """ Turn a string into a list of string and number chunks.
-            "z23a" -> ["z", 23, "a"]
-        """
         return [self._tryint(c) for c in re.split('([0-9]+)', s)]
 
 
